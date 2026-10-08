@@ -166,13 +166,11 @@
                 
                 <div class="flex flex-wrap items-center gap-3">
                     <select id="galleryCategoryFilter" onchange="filterGallery()" class="bg-zinc-900 border border-zinc-700 text-xs rounded-xl px-3 py-2 text-zinc-200 focus:outline-none focus:border-amber-500">
-                        <option value="ALL">전체 카테고리 보기</option>
-                        <option value="Fine Line">Fine Line (파인라인)</option>
-                        <option value="Black & Grey">Black & Grey (블랙앤그레이)</option>
-                        <option value="Micro Tattoo">Micro Tattoo (미니/마이크로)</option>
-                        <option value="Oriental">Oriental / Japanese (오리엔탈)</option>
-                        <option value="Color">Color Point (컬러 포인트)</option>
                     </select>
+
+                    <button onclick="openCategoryModal()" class="admin-only hidden px-3.5 py-2 text-xs font-bold rounded-xl bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-tags"></i> 카테고리 관리
+                    </button>
 
                     <button onclick="openAddDesignModal()" class="admin-only hidden px-4 py-2 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 flex items-center gap-1.5 shadow-md">
                         <i class="fa-solid fa-plus-circle"></i> 새 도안 업로드
@@ -326,6 +324,38 @@
 
     </main>
 
+    <!-- Category Manager Modal (NEW) -->
+    <div id="categoryModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-zinc-950 border border-amber-500/40 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl gold-border-glow">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2 font-serif">
+                    <i class="fa-solid fa-tags text-amber-400"></i> 도안 카테고리 관리
+                </h3>
+                <button onclick="closeCategoryModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <!-- Add Category Form -->
+            <form onsubmit="addNewCategory(event)" class="flex gap-2">
+                <input type="text" id="newCategoryInput" placeholder="새 카테고리명 입력 (예: Tribal)" required class="flex-grow bg-zinc-900 border border-zinc-700 rounded-xl px-3.5 py-2 text-xs text-zinc-100 focus:outline-none focus:border-amber-500">
+                <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-xl text-xs shrink-0">
+                    <i class="fa-solid fa-plus mr-1"></i> 추가
+                </button>
+            </form>
+
+            <!-- Category List Container -->
+            <div class="space-y-2">
+                <label class="block text-xs font-medium text-zinc-400 mb-1">등록된 카테고리 목록</label>
+                <div id="categoryListContainer" class="max-h-60 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+                    <!-- Dynamic rendering -->
+                </div>
+            </div>
+
+            <div class="pt-2 border-t border-zinc-800 flex justify-end">
+                <button onclick="closeCategoryModal()" class="px-4 py-2 bg-zinc-800 text-zinc-300 text-xs rounded-xl hover:bg-zinc-700">닫기</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Contact Options Modal -->
     <div id="smartContactModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
         <div class="glass-card bg-zinc-950 border border-amber-500/40 rounded-2xl max-w-sm w-full p-6 space-y-5 shadow-2xl gold-border-glow">
@@ -436,11 +466,6 @@
                     <div>
                         <label class="block font-medium text-zinc-300 mb-1">카테고리</label>
                         <select id="designCategory" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100">
-                            <option value="Fine Line">Fine Line</option>
-                            <option value="Black & Grey">Black & Grey</option>
-                            <option value="Micro Tattoo">Micro Tattoo</option>
-                            <option value="Oriental">Oriental</option>
-                            <option value="Color">Color Point</option>
                         </select>
                     </div>
                 </div>
@@ -758,6 +783,14 @@
         let currentFileBase64 = '';
         let currentContactValue = '';
 
+        const defaultCategories = [
+            "Fine Line",
+            "Black & Grey",
+            "Micro Tattoo",
+            "Oriental",
+            "Color Point"
+        ];
+
         const defaultArtists = [
             {
                 id: 1,
@@ -853,6 +886,7 @@
 
         window.onload = function() {
             initStorageData();
+            renderCategoryOptions();
             renderStudioProfile();
             renderGallery();
             renderArtistSection();
@@ -863,6 +897,7 @@
         };
 
         function initStorageData() {
+            if (!localStorage.getItem('nk_categories')) localStorage.setItem('nk_categories', JSON.stringify(defaultCategories));
             if (!localStorage.getItem('nk_studio')) localStorage.setItem('nk_studio', JSON.stringify(defaultStudioProfile));
             if (!localStorage.getItem('nk_artists')) localStorage.setItem('nk_artists', JSON.stringify(defaultArtists));
             if (!localStorage.getItem('nk_flash')) localStorage.setItem('nk_flash', JSON.stringify(defaultFlashItems));
@@ -872,6 +907,95 @@
             if (!localStorage.getItem('nk_inquiries')) localStorage.setItem('nk_inquiries', JSON.stringify([]));
         }
 
+        /* --- CATEGORY MANAGEMENT SYSTEM --- */
+        function getCategoriesData() {
+            return JSON.parse(localStorage.getItem('nk_categories')) || defaultCategories;
+        }
+
+        function renderCategoryOptions() {
+            const categories = getCategoriesData();
+            
+            // 1. Gallery Filter Select
+            const filterSelect = document.getElementById('galleryCategoryFilter');
+            const currentFilterVal = filterSelect.value || 'ALL';
+            
+            filterSelect.innerHTML = `<option value="ALL">전체 카테고리 보기</option>` + 
+                categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            
+            filterSelect.value = categories.includes(currentFilterVal) ? currentFilterVal : 'ALL';
+
+            // 2. Design Modal Category Select
+            const designCatSelect = document.getElementById('designCategory');
+            designCatSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        function openCategoryModal() {
+            renderCategoryListModal();
+            document.getElementById('categoryModal').classList.remove('hidden');
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.add('hidden');
+        }
+
+        function renderCategoryListModal() {
+            const categories = getCategoriesData();
+            const container = document.getElementById('categoryListContainer');
+
+            if (categories.length === 0) {
+                container.innerHTML = `<p class="text-xs text-zinc-500 py-3 text-center">등록된 카테고리가 없습니다.</p>`;
+                return;
+            }
+
+            container.innerHTML = categories.map((cat, idx) => `
+                <div class="flex items-center justify-between p-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs">
+                    <span class="font-medium text-zinc-200"><i class="fa-solid fa-tag text-amber-400 mr-2 text-[10px]"></i>${cat}</span>
+                    <button onclick="deleteCategory(${idx})" class="text-rose-400 hover:text-rose-300 p-1 font-semibold" title="삭제">
+                        <i class="fa-solid fa-trash text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function addNewCategory(e) {
+            e.preventDefault();
+            const input = document.getElementById('newCategoryInput');
+            const catName = input.value.trim();
+
+            if (!catName) return;
+
+            const categories = getCategoriesData();
+            if (categories.includes(catName)) {
+                alert('이미 존재하는 카테고리 항목입니다.');
+                return;
+            }
+
+            categories.push(catName);
+            localStorage.setItem('nk_categories', JSON.stringify(categories));
+            input.value = '';
+
+            renderCategoryOptions();
+            renderCategoryListModal();
+            renderGallery();
+            showToast(`'${catName}' 카테고리가 추가되었습니다.`);
+        }
+
+        function deleteCategory(index) {
+            const categories = getCategoriesData();
+            const targetCat = categories[index];
+
+            if (confirm(`'${targetCat}' 카테고리를 삭제하시겠습니까?`)) {
+                categories.splice(index, 1);
+                localStorage.setItem('nk_categories', JSON.stringify(categories));
+
+                renderCategoryOptions();
+                renderCategoryListModal();
+                renderGallery();
+                showToast('카테고리가 삭제되었습니다.');
+            }
+        }
+
+        /* --- STUDIO PROFILE MANAGEMENT --- */
         function getStudioProfile() {
             return JSON.parse(localStorage.getItem('nk_studio')) || defaultStudioProfile;
         }
@@ -974,6 +1098,11 @@
 
             const filtered = filter === 'ALL' ? items : items.filter(i => i.category === filter);
 
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-zinc-500 text-xs font-medium">선택하신 카테고리에 해당되는 도안이 없습니다.</div>`;
+                return;
+            }
+
             grid.innerHTML = filtered.map((item, index) => `
                 <div class="glass-card rounded-2xl overflow-hidden border border-zinc-800/80 hover:border-amber-500/50 transition group flex flex-col justify-between">
                     <div class="relative w-full h-64 bg-zinc-950/90 overflow-hidden flex items-center justify-center p-2 cursor-pointer" onclick="openImageDetailModal('${item.img}', '${item.title}')">
@@ -1016,6 +1145,7 @@
             document.getElementById('previewContainer').classList.add('hidden');
             currentFileBase64 = '';
             toggleUploadSource('file');
+            renderCategoryOptions();
             document.getElementById('designModal').classList.remove('hidden');
         }
 
