@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOIR INK STUDIO - 타투 아티스트 프로필 & 도안 관리</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                            accent: '#d4af37'
+                        },
+                        studio: {
+                            bg: '#0a0a0d',
+                            card: 'rgba(20, 20, 26, 0.85)',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            accent: '#a855f7'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans KR', 'sans-serif'],
+                        serif: ['Cinzel', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #0a0a0d;
+            color: #e4e4e7;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(168, 85, 247, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(212, 175, 55, 0.06) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #121216;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a855f7;
+        }
+        .glass-card {
+            background: rgba(20, 20, 26, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .gold-border-glow {
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col custom-scrollbar text-zinc-200">
+
+    <header class="sticky top-0 z-40 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80 px-4 lg:px-8 py-3.5">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- Studio Logo -->
+            <div class="flex items-center space-x-3">
+                <div class="cursor-pointer flex items-center space-x-3" onclick="switchTab('gallery')">
+                    <div id="studioIconContainer" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-purple-600 to-rose-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-purple-900/30">
+                        <i id="studioIconDisplay" class="fa-solid fa-pen-nib"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-serif font-extrabold text-lg tracking-wider text-white flex items-center gap-2">
+                            <span id="studioNameDisplay">NOIR INK</span> 
+                            <span id="studioBadgeDisplay" class="text-[10px] font-sans font-semibold px-2 py-0.5 rounded-full bg-amber-950/80 text-amber-300 border border-amber-700/60">STUDIO</span>
+                        </h1>
+                        <p id="studioSubDisplay" class="text-[11px] text-zinc-400">Custom Tattoo Art & Original Flash Archive</p>
+                    </div>
+                </div>
+                <button onclick="openStudioProfileModal()" class="admin-only hidden ml-1 p-1.5 text-xs bg-zinc-900 hover:bg-zinc-800 border border-amber-500/50 text-amber-400 rounded-lg transition" title="상호 프로필 수정">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+            </div>
+
+            <!-- Right Actions -->
+            <div class="flex items-center space-x-3">
+                <button onclick="openContactConfigModal()" class="admin-only hidden text-xs bg-zinc-900 hover:bg-zinc-800 border border-amber-600/50 text-amber-300 px-3 py-1.5 rounded-full font-medium transition">
+                    <i class="fa-solid fa-gear"></i> 연락처 설정
+                </button>
+
+                <div id="adminBadgeContainer">
+                    <button onclick="openAdminLoginModal()" id="adminLoginBtn" class="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 px-3.5 py-1.5 rounded-full text-xs font-medium transition shadow-sm">
+                        <i class="fa-solid fa-lock text-amber-400"></i>
+                        <span>관리자 로그인</span>
+                    </button>
+                    <div id="adminActiveBadge" class="hidden flex items-center gap-2 bg-amber-950/80 border border-amber-600/80 text-amber-200 px-3.5 py-1.5 rounded-full text-xs font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span>관리자 모드 활성</span>
+                        <button onclick="logoutAdmin()" class="ml-1 text-zinc-400 hover:text-white" title="로그아웃"><i class="fa-solid fa-right-from-bracket"></i></button>
+                    </div>
+                </div>
+
+                <button onclick="openBookingModal()" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 via-purple-600 to-rose-600 hover:opacity-90 text-white transition shadow-lg shadow-purple-950/40">
+                    <i class="fa-regular fa-paper-plane"></i> 상담 및 예약 문의
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-zinc-950/80 border-b border-zinc-800/80 sticky top-[65px] z-30 backdrop-blur-md px-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between overflow-x-auto py-2.5 custom-scrollbar gap-1">
+            <div class="flex space-x-1 shrink-0">
+                <button onclick="switchTab('gallery')" id="tab-gallery" class="nav-tab px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap bg-amber-500 text-zinc-950 shadow-md">
+                    <i class="fa-solid fa-palette"></i> 도안 카탈로그
+                </button>
+                <button onclick="switchTab('artist')" id="tab-artist" class="nav-tab px-4 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 whitespace-nowrap text-zinc-400 hover:text-white hover:bg-zinc-900">
+                    <i class="fa-solid fa-user-ninja"></i> 아티스트 프로필
+                </button>
+                <button onclick="switchTab('pricing')" id="tab-pricing" class="nav-tab px-4 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 whitespace-nowrap text-zinc-400 hover:text-white hover:bg-zinc-900">
+                    <i class="fa-solid fa-calculator"></i> 견적 계산기 & 책정 기준
+                </button>
+                <button onclick="switchTab('aftercare')" id="tab-aftercare" class="nav-tab px-4 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 whitespace-nowrap text-zinc-400 hover:text-white hover:bg-zinc-900">
+                    <i class="fa-solid fa-shield-heart"></i> 시술 후 관리법
+                </button>
+                <button onclick="switchTab('inquiries')" id="tab-inquiries" class="nav-tab admin-only hidden px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap text-amber-300 bg-amber-950/60 border border-amber-800/60">
+                    <i class="fa-solid fa-inbox"></i> 받은 문의함 <span id="inquiryBadgeCount" class="bg-amber-500 text-zinc-950 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+                </button>
+            </div>
+
+            <!-- Direct Contact Links -->
+            <div class="flex items-center gap-2 shrink-0 ml-4">
+                <button onclick="openSmartContactModal('kakao')" id="navKakaoBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-yellow-400 text-zinc-950 hover:bg-yellow-300 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-comment"></i> 오픈카카오톡
+                </button>
+                <button onclick="openSmartContactModal('phone')" id="navPhoneBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-zinc-800 text-zinc-200 hover:bg-zinc-700 transition flex items-center gap-1.5 border border-zinc-700">
+                    <i class="fa-solid fa-phone"></i> 전화 / 문자
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+
+        <!-- Gallery Section -->
+        <section id="section-gallery" class="tab-content block space-y-6">
+            <div class="glass-card p-6 rounded-2xl border border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-2 font-serif">
+                        <i class="fa-solid fa-gem text-amber-400"></i> FLASH DESIGN ARCHIVE
+                    </h2>
+                    <p class="text-xs text-zinc-400 mt-1">아티스트의 100% 자작 커스텀 도안 카탈로그입니다. (이미지는 원본 비율로 손상 없이 전체 노출됩니다)</p>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-3">
+                    <select id="galleryCategoryFilter" onchange="filterGallery()" class="bg-zinc-900 border border-zinc-700 text-xs rounded-xl px-3 py-2 text-zinc-200 focus:outline-none focus:border-amber-500">
+                        <option value="ALL">전체 카테고리 보기</option>
+                        <option value="Fine Line">Fine Line (파인라인)</option>
+                        <option value="Black & Grey">Black & Grey (블랙앤그레이)</option>
+                        <option value="Micro Tattoo">Micro Tattoo (미니/마이크로)</option>
+                        <option value="Oriental">Oriental / Japanese (오리엔탈)</option>
+                        <option value="Color">Color Point (컬러 포인트)</option>
+                    </select>
+
+                    <button onclick="openAddDesignModal()" class="admin-only hidden px-4 py-2 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 flex items-center gap-1.5 shadow-md">
+                        <i class="fa-solid fa-plus-circle"></i> 새 도안 업로드
+                    </button>
+                </div>
+            </div>
+
+            <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- Artist Profile Section -->
+        <section id="section-artist" class="tab-content hidden space-y-8">
+            <div class="glass-card p-6 rounded-2xl border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-2 font-serif">
+                        <i class="fa-solid fa-user-ninja text-purple-400"></i> RESIDENT ARTISTS
+                    </h2>
+                    <p class="text-xs text-zinc-400 mt-1">스튜디오에 소속된 전문 타투 아티스트 프로필과 1:1 직통 연락처입니다.</p>
+                </div>
+                <button onclick="openArtistModal()" class="admin-only hidden px-4 py-2 text-xs font-bold rounded-xl bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-plus"></i> 새 아티스트 등록
+                </button>
+            </div>
+
+            <div id="artistTabsContainer" class="flex space-x-2 overflow-x-auto pb-2 border-b border-zinc-800"></div>
+
+            <div id="artistDetailCard" class="glass-card rounded-2xl p-6 sm:p-8 border border-zinc-800 space-y-8"></div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section id="section-pricing" class="tab-content hidden space-y-8">
+            <div class="glass-card p-6 rounded-2xl border border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-2 font-serif">
+                        <i class="fa-solid fa-sliders text-amber-400"></i> PRICING STANDARDS & ESTIMATOR
+                    </h2>
+                    <p class="text-xs text-zinc-400 mt-1">투명한 타투 견적 산출을 위한 세부 기준표 및 맞춤 실시간 계산기입니다.</p>
+                </div>
+                <div class="admin-only hidden flex items-center gap-2">
+                    <button onclick="openAddCriteriaModal()" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> 견적 기준 항목 추가
+                    </button>
+                    <button onclick="resetPricingToDefault()" class="px-3 py-2 text-xs font-medium rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700">
+                        <i class="fa-solid fa-rotate-left"></i> 기본값 초기화
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Pricing Criteria List -->
+                <div class="lg:col-span-7 space-y-4">
+                    <h3 class="text-sm font-bold text-white flex items-center justify-between">
+                        <span><i class="fa-solid fa-list-check text-amber-400 mr-2"></i> 세부 책정 기준 항목</span>
+                        <span class="text-xs text-zinc-400 font-normal">관리자 모드에서 실시간 변경 가능</span>
+                    </h3>
+                    <div id="pricingCriteriaContainer" class="space-y-4"></div>
+                </div>
+
+                <!-- Interactive Estimator -->
+                <div class="lg:col-span-5">
+                    <div class="glass-card rounded-2xl p-6 sticky top-32 border border-purple-500/30 shadow-2xl space-y-5">
+                        <div class="border-b border-zinc-800 pb-4">
+                            <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-calculator text-rose-400"></i> 실시간 견적 미리보기
+                            </h3>
+                            <p class="text-xs text-zinc-400 mt-1">원하시는 조건에 맞춰 대략적인 시술 금액을 산출해 보세요.</p>
+                        </div>
+
+                        <div class="space-y-4 text-xs">
+                            <div>
+                                <label class="block font-medium text-zinc-300 mb-1.5">1. 타투 크기 선택</label>
+                                <select id="calcSize" onchange="calculateEstimate()" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-200 focus:outline-none focus:border-amber-500">
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block font-medium text-zinc-300 mb-1.5">2. 세부 디테일 & 명암 표현</label>
+                                <select id="calcComplexity" onchange="calculateEstimate()" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-200 focus:outline-none focus:border-amber-500">
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block font-medium text-zinc-300 mb-1.5">3. 시술 신체 부위 (난이도)</label>
+                                <select id="calcPlacement" onchange="calculateEstimate()" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-200 focus:outline-none focus:border-amber-500">
+                                    <option value="1.0">보통 부위 (팔, 다리, 허벅지 / 기본)</option>
+                                    <option value="1.15">난이도 상 (쇄골, 옆구리, 손목 / +15%)</option>
+                                    <option value="1.30">고난이도 (갈비뼈, 목, 손가락, 발등 / +30%)</option>
+                                </select>
+                            </div>
+
+                            <div class="pt-2">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="calcCustomDesign" onchange="calculateEstimate()" class="rounded bg-zinc-950 border-zinc-700 text-purple-600 focus:ring-purple-500">
+                                    <span class="text-zinc-300 font-medium">1:1 맞춤 커스텀 도안 신규 제작 (+50,000원)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-zinc-900 via-purple-950/60 to-zinc-900 p-5 rounded-xl border border-purple-800/50 text-center">
+                            <span class="text-[11px] text-purple-300 font-medium uppercase tracking-wider block mb-1">산출 예상 견적</span>
+                            <div class="text-3xl font-black text-amber-400 font-serif" id="calcResultDisplay">0 원</div>
+                            <p class="text-[10px] text-zinc-400 mt-2">* 피부 특성, 커버업 여부 및 정밀 작업 시간에 따라 최종 상담 시 조율될 수 있습니다.</p>
+                        </div>
+
+                        <button onclick="openBookingWithEstimate()" class="w-full py-3 bg-gradient-to-r from-amber-500 via-purple-600 to-rose-600 hover:opacity-90 text-zinc-950 font-black rounded-xl shadow-lg transition text-xs flex items-center justify-center gap-2">
+                            <i class="fa-regular fa-paper-plane"></i> 이 조건으로 예약 상담 신청
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Aftercare Section -->
+        <section id="section-aftercare" class="tab-content hidden space-y-8">
+            <div class="glass-card p-6 rounded-2xl border border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-2 font-serif">
+                        <i class="fa-solid fa-shield-heart text-rose-400"></i> TATTOO AFTERCARE GUIDE
+                    </h2>
+                    <p class="text-xs text-zinc-400 mt-1">선명하고 착색이 잘 되도록 돕는 단계별 관리 가이드입니다.</p>
+                </div>
+                <div class="admin-only hidden flex items-center gap-2">
+                    <button onclick="openAddAftercareModal()" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> 관리 가이드 추가
+                    </button>
+                    <button onclick="resetAftercareToDefault()" class="px-3 py-2 text-xs font-medium rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700">
+                        <i class="fa-solid fa-rotate-left"></i> 기본값 초기화
+                    </button>
+                </div>
+            </div>
+
+            <div id="aftercareGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- Inquiries Admin Section -->
+        <section id="section-inquiries" class="tab-content hidden space-y-6 admin-only">
+            <div class="glass-card p-6 rounded-2xl border border-zinc-800 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-2 font-serif">
+                        <i class="fa-solid fa-inbox text-amber-400"></i> RECEIVED INQUIRIES
+                    </h2>
+                    <p class="text-xs text-zinc-400 mt-1">고객들이 예약/상담 폼을 통해 제출한 문의 내역입니다.</p>
+                </div>
+                <button onclick="clearAllInquiries()" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-rose-950 border border-rose-700 text-rose-300 hover:bg-rose-900">
+                    <i class="fa-solid fa-trash mr-1"></i> 전체 문의 삭제
+                </button>
+            </div>
+
+            <div id="inquiriesContainer" class="space-y-4"></div>
+        </section>
+
+    </main>
+
+    <!-- Contact Options Modal -->
+    <div id="smartContactModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-zinc-950 border border-amber-500/40 rounded-2xl max-w-sm w-full p-6 space-y-5 shadow-2xl gold-border-glow">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h3 id="scModalTitle" class="text-base font-bold text-white flex items-center gap-2 font-serif">
+                    <i class="fa-solid fa-headset text-amber-400"></i> 연락처 안내
+                </h3>
+                <button onclick="closeSmartContactModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="space-y-4 text-center">
+                <div id="scIconBox" class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-2xl text-amber-400">
+                    <i class="fa-solid fa-comment"></i>
+                </div>
+
+                <div>
+                    <span id="scArtistName" class="text-xs font-bold text-purple-400 block mb-1">NOIR INK 대표 문의</span>
+                    <p id="scValueDisplay" class="text-sm font-extrabold text-white bg-zinc-900 py-2.5 px-3 rounded-xl border border-zinc-800 break-all select-all">https://open.kakao.com</p>
+                </div>
+
+                <p id="scDesc" class="text-xs text-zinc-400">복사하여 사용하시거나 아래 버튼을 누르면 해당 앱으로 바로 연결됩니다.</p>
+
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button id="scCopyBtn" onclick="copyContactValue()" class="py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold rounded-xl border border-zinc-700 flex items-center justify-center gap-1.5 transition">
+                        <i class="fa-regular fa-copy"></i> 정보 복사
+                    </button>
+                    <a id="scDirectLink" href="#" target="_blank" class="py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold rounded-xl shadow-lg flex items-center justify-center gap-1.5 transition">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> 바로 연결
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="adminLoginModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-zinc-950 border border-amber-500/40 rounded-2xl max-w-sm w-full p-6 space-y-5 shadow-2xl gold-border-glow">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white font-serif">관리자 인증</h3>
+                <p class="text-xs text-zinc-400">관리자 비밀번호를 입력해주세요.</p>
+            </div>
+
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-zinc-400 mb-1">비밀번호 (초기: 1234)</label>
+                    <input type="password" id="adminPasswordInput" required placeholder="비밀번호 입력" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3.5 py-2.5 text-zinc-100 text-sm focus:outline-none focus:border-amber-500 text-center tracking-widest">
+                </div>
+                <div id="adminLoginError" class="text-xs text-rose-400 text-center hidden">
+                    비밀번호가 일치하지 않습니다.
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeAdminLoginModal()" class="w-1/2 py-2.5 bg-zinc-800 text-zinc-300 rounded-xl text-xs font-medium hover:bg-zinc-700">취소</button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-xl text-xs font-bold shadow-lg">인증 완료</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Design Upload Modal -->
+    <div id="designModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-zinc-950 border border-zinc-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h3 id="designModalTitle" class="text-base font-bold text-white font-serif">도안 등록 및 수정</h3>
+                <button onclick="closeDesignModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="designForm" onsubmit="saveDesignItem(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1.5">도안 이미지 소스</label>
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <button type="button" id="tabSourceFile" onclick="toggleUploadSource('file')" class="py-2 rounded-xl border border-amber-500/80 bg-amber-950/60 text-amber-200 font-semibold">
+                            <i class="fa-solid fa-file-arrow-up mr-1"></i> 내 기기 (PC/모바일)
+                        </button>
+                        <button type="button" id="tabSourceUrl" onclick="toggleUploadSource('url')" class="py-2 rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-400 font-semibold">
+                            <i class="fa-solid fa-link mr-1"></i> 웹 이미지 URL
+                        </button>
+                    </div>
+
+                    <div id="sourceFileBox" class="border-2 border-dashed border-zinc-700 hover:border-amber-500/60 rounded-xl p-4 text-center cursor-pointer bg-zinc-900/50 transition">
+                        <input type="file" id="designFileInput" accept="image/*" onchange="previewFileImage(this)" class="hidden">
+                        <label for="designFileInput" class="cursor-pointer block space-y-2">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-amber-400"></i>
+                            <p class="text-zinc-300 font-medium">클릭하여 내 사진첩/앨범에서 선택</p>
+                            <p class="text-[10px] text-zinc-500">JPG, PNG, WEBP 이미지 지원</p>
+                        </label>
+                    </div>
+
+                    <div id="sourceUrlBox" class="hidden">
+                        <input type="url" id="designUrlInput" placeholder="https://images.unsplash.com/..." class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                    </div>
+
+                    <div id="previewContainer" class="mt-3 hidden bg-zinc-900 rounded-xl p-2 border border-zinc-800 text-center">
+                        <p class="text-[10px] text-zinc-400 mb-1">이미지 미리보기 (잘림 없음)</p>
+                        <div class="h-40 bg-black/80 rounded-lg overflow-hidden flex items-center justify-center">
+                            <img id="designPreviewImg" src="" alt="Preview" class="max-h-full max-w-full object-contain">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-medium text-zinc-300 mb-1">도안 이름</label>
+                        <input type="text" id="designTitle" required placeholder="예: 달빛 나비" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-zinc-300 mb-1">카테고리</label>
+                        <select id="designCategory" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100">
+                            <option value="Fine Line">Fine Line</option>
+                            <option value="Black & Grey">Black & Grey</option>
+                            <option value="Micro Tattoo">Micro Tattoo</option>
+                            <option value="Oriental">Oriental</option>
+                            <option value="Color">Color Point</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-medium text-zinc-300 mb-1">권장 크기</label>
+                        <input type="text" id="designSize" required placeholder="예: 8 cm" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-zinc-300 mb-1">시술 금액</label>
+                        <input type="text" id="designPrice" required placeholder="예: 180,000원" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">도안 상태</label>
+                    <select id="designStatus" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100">
+                        <option value="예약가능">예약 가능</option>
+                        <option value="상담중">상담 진행 중</option>
+                        <option value="작업완료">작업 완료 (포트폴리오)</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-zinc-800">
+                    <button type="button" onclick="closeDesignModal()" class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-xl hover:bg-zinc-700">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-xl shadow-lg">저장하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-zinc-950 border border-zinc-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2 font-serif">
+                    <i class="fa-regular fa-paper-plane text-amber-400"></i> 시술 예약 & 상담 신청
+                </h3>
+                <button onclick="closeBookingModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="submitBookingForm(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">성함 / 닉네임 *</label>
+                    <input type="text" id="bkName" required placeholder="홍길동" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">연락처 (카카오톡 ID 또는 전화번호) *</label>
+                    <input type="text" id="bkContact" required placeholder="010-1234-5678 또는 Kakao ID" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">담당 희망 아티스트</label>
+                    <select id="bkArtistSelect" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100">
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">희망 시술 날짜</label>
+                    <input type="date" id="bkDate" required class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">상담 내용 (선택 도안, 원하는 신체 부위, 크기)</label>
+                    <textarea id="bkNotes" rows="3" placeholder="희망하시는 느낌이나 세부 요청 사항을 적어주세요." class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
+                </div>
+
+                <div class="p-3 bg-zinc-900/80 rounded-xl border border-zinc-800 text-[11px] text-zinc-400">
+                    <span class="font-bold text-amber-400 block mb-1">자동 연결 안내</span>
+                    신청서 제출 시 관리자가 설정한 주 연결 방식(오픈카카오톡 / 전화·문자)으로 이동합니다.
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeBookingModal()" class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-xl hover:bg-zinc-700">취소</button>
+                    <button type="submit" class="px-5 py-2 bg-gradient-to-r from-amber-500 to-purple-600 text-zinc-950 font-bold rounded-xl shadow-lg">신청서 보냄</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contact Config Modal -->
+    <div id="contactConfigModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-zinc-950 border border-zinc-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h3 class="text-base font-bold text-white font-serif">상담 연결 링크 및 연락처 설정</h3>
+                <button onclick="closeContactConfigModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="saveContactConfig(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">오픈 카카오톡 링크 URL</label>
+                    <input type="url" id="cfgKakaoUrl" required placeholder="https://open.kakao.com/o/..." class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">스튜디오 대표 모바일 번호</label>
+                    <input type="text" id="cfgPhoneNum" required placeholder="010-0000-0000" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">신청서 제출 시 주 연결 방식</label>
+                    <select id="cfgPrimaryMethod" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100">
+                        <option value="kakao">오픈 카카오톡으로 바로 연결</option>
+                        <option value="phone">전화 / 문자 연결</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2 pt-3">
+                    <button type="button" onclick="closeContactConfigModal()" class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-xl">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-xl">설정 저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Studio Profile Config Modal -->
+    <div id="studioProfileModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-zinc-950 border border-amber-500/40 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl gold-border-glow">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h3 class="text-base font-bold text-white font-serif flex items-center gap-2">
+                    <i class="fa-solid fa-store text-amber-400"></i> 스튜디오 상호 프로필 수정
+                </h3>
+                <button onclick="closeStudioProfileModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="saveStudioProfile(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">스튜디오 이름 *</label>
+                    <input type="text" id="spName" required placeholder="예: NOIR INK" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">배지 / 태그 문구</label>
+                    <input type="text" id="spBadge" placeholder="예: STUDIO" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">서브타이틀 / 한 줄 설명</label>
+                    <input type="text" id="spSubtitle" placeholder="예: Custom Tattoo Art & Original Flash Archive" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">아이콘 선택</label>
+                    <select id="spIcon" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-amber-500">
+                        <option value="fa-solid fa-pen-nib">pen-nib (펜 촉)</option>
+                        <option value="fa-solid fa-dragon">dragon (용)</option>
+                        <option value="fa-solid fa-skull">skull (해골)</option>
+                        <option value="fa-solid fa-gem">gem (보석)</option>
+                        <option value="fa-solid fa-fire">fire (불꽃)</option>
+                        <option value="fa-solid fa-crown">crown (왕관)</option>
+                        <option value="fa-solid fa-palette">palette (팔레트)</option>
+                        <option value="fa-solid fa-eye">eye (눈)</option>
+                        <option value="fa-solid fa-bolt">bolt (번개)</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-zinc-800">
+                    <button type="button" onclick="closeStudioProfileModal()" class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-xl hover:bg-zinc-700">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-xl shadow-lg">저장하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Artist Edit Modal -->
+    <div id="artistModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-zinc-950 border border-purple-500/40 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h3 id="artistModalTitle" class="text-base font-bold text-white font-serif">아티스트 프로필 설정</h3>
+                <button onclick="closeArtistModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="artistForm" onsubmit="saveArtistInfo(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="artId">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-medium text-zinc-300 mb-1">아티스트 이름/활동명 *</label>
+                        <input type="text" id="artName" required placeholder="예: LUNA (루나)" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-zinc-300 mb-1">직책 / 대표 경력 *</label>
+                        <input type="text" id="artRole" required placeholder="예: Head Artist / 경력 9년차" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">주 장르 / 전문 분야</label>
+                    <input type="text" id="artSpecialty" required placeholder="예: 파인라인, 블랙워크, 마이크로 타투" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100">
+                </div>
+
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">프로필 사진 URL</label>
+                    <input type="url" id="artAvatar" required placeholder="https://..." class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100">
+                </div>
+
+                <div class="p-3 bg-purple-950/30 border border-purple-800/50 rounded-xl space-y-2.5">
+                    <span class="font-bold text-purple-300 block"><i class="fa-solid fa-share-nodes mr-1"></i> 개별 연동 연락처 (SNS / 카카오톡 / 전화)</span>
+                    
+                    <div>
+                        <label class="block text-[11px] text-zinc-400 mb-1"><i class="fa-brands fa-instagram text-rose-400 mr-1"></i> 인스타그램 주소 (URL)</label>
+                        <input type="url" id="artInstagram" placeholder="https://instagram.com/artist_username" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-1.5 text-zinc-100">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] text-zinc-400 mb-1"><i class="fa-solid fa-comment text-yellow-400 mr-1"></i> 개별 오픈카카오톡 주소 (URL)</label>
+                        <input type="url" id="artKakaoUrl" placeholder="https://open.kakao.com/o/..." class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-1.5 text-zinc-100">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] text-zinc-400 mb-1"><i class="fa-solid fa-phone text-emerald-400 mr-1"></i> 직통 전화번호</label>
+                        <input type="text" id="artPhone" placeholder="010-0000-0000" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-1.5 text-zinc-100">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">아티스트 소개글</label>
+                    <textarea id="artBio" rows="3" placeholder="아티스트의 철학이나 안내 문구를 적어주세요." class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100"></textarea>
+                </div>
+
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">주요 경력 및 약력 (줄바꿈으로 구분)</label>
+                    <textarea id="artHistory" rows="3" placeholder="2022 컨벤션 수상&#10;FDA 승인 잉크 사용" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-zinc-800">
+                    <button type="button" onclick="closeArtistModal()" class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-xl">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg">저장하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pricing Criteria Modal -->
+    <div id="criteriaModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-zinc-950 border border-amber-500/40 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h3 id="criteriaModalTitle" class="text-base font-bold text-white font-serif">견적 책정 기준 추가/수정</h3>
+                <button onclick="closeCriteriaModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="savePricingCriteria(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="critIndex">
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">분류 카테고리</label>
+                    <select id="critCategory" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100">
+                        <option value="크기별 기본 견적">크기별 기본 견적</option>
+                        <option value="세부 표현 방식">세부 표현 방식</option>
+                        <option value="기타 옵션">기타 옵션</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">항목명 *</label>
+                    <input type="text" id="critTitle" required placeholder="예: 대형 타투 (15cm ~ 20cm)" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">기본 가격 (원) *</label>
+                    <input type="number" id="critPrice" required placeholder="180000" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">세부 설명</label>
+                    <input type="text" id="critDesc" placeholder="예: 손바닥 크기 디테일 라인 작업" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeCriteriaModal()" class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-xl">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-xl">저장하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Aftercare Item Modal -->
+    <div id="aftercareModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-zinc-950 border border-rose-500/40 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h3 id="aftercareModalTitle" class="text-base font-bold text-white font-serif">시술 후 관리 항목 추가</h3>
+                <button onclick="closeAftercareModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="saveAftercareItem(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="aftercareIndex">
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">시구/단계 (예: 1일~3일차) *</label>
+                    <input type="text" id="afPeriod" required placeholder="예: 시술 당일 ~ 3일차" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">제목 *</label>
+                    <input type="text" id="afTitle" required placeholder="예: 초기 방수필름 케어" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">태그 (예: 필수수칙, 핵심케어) *</label>
+                    <input type="text" id="afTag" required placeholder="예: 필수수칙" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-300 mb-1">수칙 내용 (줄바꿈 가능) *</label>
+                    <textarea id="afContent" rows="4" required placeholder="1. 방수 필름은 24시간 유지 후 제거&#10;2. 약산성 비누 세척" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeAftercareModal()" class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-xl">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl">저장하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Image Detail Viewer Modal -->
+    <div id="imageDetailModal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4" onclick="closeImageDetailModal()">
+        <div class="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
+            <button onclick="closeImageDetailModal()" class="absolute -top-10 right-0 text-white text-2xl hover:text-amber-400"><i class="fa-solid fa-xmark"></i></button>
+            <div class="bg-black/90 rounded-2xl overflow-hidden border border-zinc-800 p-2 max-h-[80vh] flex items-center justify-center">
+                <img id="detailModalImg" src="" alt="Full Detail" class="max-h-[75vh] w-auto object-contain rounded-lg">
+            </div>
+            <p id="detailModalTitle" class="text-white text-sm font-bold mt-3 font-serif"></p>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-amber-950 border border-amber-500/80 text-amber-200 text-xs font-semibold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 opacity-0 translate-y-4 pointer-events-none z-50 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-amber-400 text-base"></i>
+        <span id="toastMsg">처리되었습니다.</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        let isAdmin = false;
+        let selectedArtistId = 1;
+        let currentUploadSource = 'file';
+        let currentFileBase64 = '';
+        let currentContactValue = '';
+
+        const defaultArtists = [
+            {
+                id: 1,
+                name: "LUNA (루나)",
+                role: "Head Artist / Owner",
+                exp: "경력 9년차",
+                specialty: "감성 블랙워크 / 파인라인 / 마이크로 릴리프",
+                bio: "섬세한 라인과 그라데이션 음영으로 신체의 곡선에 가장 자연스럽게 녹아드는 단 하나뿐인 오리지널 도안을 제작합니다.",
+                avatar: "https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?auto=format&fit=crop&w=400&q=80",
+                instagram: "https://instagram.com/noir_luna_tattoo",
+                kakaoUrl: "https://open.kakao.com/o/sLunaTattoo",
+                phone: "010-1234-5678",
+                history: [
+                    "2018 서울 타투 컨벤션 파인라인 부문 대상",
+                    "독일 베를린 스튜디오 초청 게스트 아티스트",
+                    "위생관리사 자격 보유 & FDA 승인 무독성 잉크 전용"
+                ]
+            },
+            {
+                id: 2,
+                name: "KAI (카이)",
+                role: "Senior Artist",
+                exp: "경력 6년차",
+                specialty: "다크 블랙워크 / 오리엔탈 이레즈미 크로스오버",
+                bio: "선이 굵고 강렬한 명암 대조의 오리지널 다크 아트를 추구합니다. 거친 질감과 스케치 스타일 타투 전문입니다.",
+                avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+                instagram: "https://instagram.com/kai_blackink",
+                kakaoUrl: "https://open.kakao.com/o/sKaiDark",
+                phone: "010-9876-5432",
+                history: [
+                    "2021 블랙워크 아티스트 어워드 입상",
+                    "국내 유명 스트릿 브랜드 컬래버레이션 도안 참여"
+                ]
+            }
+        ];
+
+        const defaultFlashItems = [
+            {
+                id: 101,
+                title: "달빛 나비 (Moonlight Butterfly)",
+                category: "Fine Line",
+                size: "8 cm",
+                price: "180,000원",
+                status: "예약가능",
+                img: "https://images.unsplash.com/photo-1562962230-16e4623d36e6?auto=format&fit=crop&w=600&q=80"
+            },
+            {
+                id: 102,
+                title: "기하학 나침반 & 장미",
+                category: "Black & Grey",
+                size: "14 cm",
+                price: "280,000원",
+                status: "예약가능",
+                img: "https://images.unsplash.com/photo-1590246814885-568b1c61e541?auto=format&fit=crop&w=600&q=80"
+            },
+            {
+                id: 103,
+                title: "심플 미니 수선화",
+                category: "Micro Tattoo",
+                size: "4 cm",
+                price: "90,000원",
+                status: "상담중",
+                img: "https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?auto=format&fit=crop&w=600&q=80"
+            }
+        ];
+
+        const defaultPricingCriteria = [
+            { category: "크기별 기본 견적", title: "미니 타투 (3cm ~ 5cm)", price: 80000, desc: "포인트 미니 심볼, 레터링 한 단어 기준", icon: "fa-ruler-horizontal" },
+            { category: "크기별 기본 견적", title: "중형 타투 (6cm ~ 10cm)", price: 160000, desc: "손바닥 반 크기의 꽃, 문양, 캐릭터 라인 작업", icon: "fa-ruler-combined" },
+            { category: "크기별 기본 견적", title: "대형 타투 (11cm ~ 20cm)", price: 300000, desc: "하뚝, 종아리, 어깨 범위를 채우는 디테일 도안", icon: "fa-expand" },
+            { category: "세부 표현 방식", title: "라인워크 / 심플 레터링", price: 0, desc: "기본 선 중심 디자인 (추가금 없음)", icon: "fa-pen-line" },
+            { category: "세부 표현 방식", title: "블랙앤그레이 정밀 셰이딩", price: 50000, desc: "부드러운 음영 입체 그라데이션 표현 추가", icon: "fa-brush" }
+        ];
+
+        const defaultAftercareList = [
+            { period: "시술 당일 ~ 3일차", title: "초기 방수필름 케어 및 세척", tag: "필수수칙", content: "1. 부착해 드린 방수 필름은 24~48시간 유지 후 미온수로 부드럽게 떼어냅니다.\n2. 약산성 비누로 살살 세척 후 티슈로 누르듯 물기를 닦습니다.", icon: "fa-bandage" },
+            { period: "4일차 ~ 14일차", title: "전용 보습제 도포 & 건조 방지", tag: "핵심케어", content: "1. 타투 전용 연고 또는 비판텐을 아주 얇게 하루 3~4회 바릅니다.\n2. 탈각(딱지)이 생겨 가려울 때 절대 억지로 떼어내지 마세요.", icon: "fa-droplet" },
+            { period: "3주간 금지사항", title: "감염 예방 & 음주/수영 차단", tag: "금지사항", content: "1. 음주, 사우나, 입수, 격렬한 운동은 3주간 금지합니다.\n2. 직사광선 자외선을 차단해 주세요.", icon: "fa-ban" }
+        ];
+
+        const defaultConfig = {
+            kakaoUrl: "https://open.kakao.com",
+            phoneNum: "010-1234-5678",
+            primaryMethod: "kakao"
+        };
+
+        const defaultStudioProfile = {
+            name: "NOIR INK",
+            badge: "STUDIO",
+            subtitle: "Custom Tattoo Art & Original Flash Archive",
+            icon: "fa-solid fa-pen-nib"
+        };
+
+        window.onload = function() {
+            initStorageData();
+            renderStudioProfile();
+            renderGallery();
+            renderArtistSection();
+            renderPricingCriteria();
+            renderAftercareGrid();
+            renderInquiriesList();
+            updateContactUI();
+        };
+
+        function initStorageData() {
+            if (!localStorage.getItem('nk_studio')) localStorage.setItem('nk_studio', JSON.stringify(defaultStudioProfile));
+            if (!localStorage.getItem('nk_artists')) localStorage.setItem('nk_artists', JSON.stringify(defaultArtists));
+            if (!localStorage.getItem('nk_flash')) localStorage.setItem('nk_flash', JSON.stringify(defaultFlashItems));
+            if (!localStorage.getItem('nk_pricing')) localStorage.setItem('nk_pricing', JSON.stringify(defaultPricingCriteria));
+            if (!localStorage.getItem('nk_aftercare')) localStorage.setItem('nk_aftercare', JSON.stringify(defaultAftercareList));
+            if (!localStorage.getItem('nk_config')) localStorage.setItem('nk_config', JSON.stringify(defaultConfig));
+            if (!localStorage.getItem('nk_inquiries')) localStorage.setItem('nk_inquiries', JSON.stringify([]));
+        }
+
+        function getStudioProfile() {
+            return JSON.parse(localStorage.getItem('nk_studio')) || defaultStudioProfile;
+        }
+
+        function renderStudioProfile() {
+            const profile = getStudioProfile();
+            document.getElementById('studioNameDisplay').innerText = profile.name || "NOIR INK";
+            
+            const badgeEl = document.getElementById('studioBadgeDisplay');
+            if (profile.badge && profile.badge.trim() !== '') {
+                badgeEl.innerText = profile.badge;
+                badgeEl.classList.remove('hidden');
+            } else {
+                badgeEl.classList.add('hidden');
+            }
+
+            document.getElementById('studioSubDisplay').innerText = profile.subtitle || "";
+            document.getElementById('studioIconDisplay').className = profile.icon || "fa-solid fa-pen-nib";
+        }
+
+        function openStudioProfileModal() {
+            const profile = getStudioProfile();
+            document.getElementById('spName').value = profile.name || '';
+            document.getElementById('spBadge').value = profile.badge || '';
+            document.getElementById('spSubtitle').value = profile.subtitle || '';
+            document.getElementById('spIcon').value = profile.icon || 'fa-solid fa-pen-nib';
+            document.getElementById('studioProfileModal').classList.remove('hidden');
+        }
+
+        function closeStudioProfileModal() {
+            document.getElementById('studioProfileModal').classList.add('hidden');
+        }
+
+        function saveStudioProfile(e) {
+            e.preventDefault();
+            const profile = {
+                name: document.getElementById('spName').value.trim(),
+                badge: document.getElementById('spBadge').value.trim(),
+                subtitle: document.getElementById('spSubtitle').value.trim(),
+                icon: document.getElementById('spIcon').value
+            };
+            localStorage.setItem('nk_studio', JSON.stringify(profile));
+            renderStudioProfile();
+            closeStudioProfileModal();
+            showToast('스튜디오 상호 프로필이 수정되었습니다.');
+        }
+
+        function openAdminLoginModal() {
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminLoginError').classList.add('hidden');
+            document.getElementById('adminLoginModal').classList.remove('hidden');
+        }
+
+        function closeAdminLoginModal() {
+            document.getElementById('adminLoginModal').classList.add('hidden');
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const pw = document.getElementById('adminPasswordInput').value;
+            if (pw === "1234") {
+                isAdmin = true;
+                closeAdminLoginModal();
+                updateAdminViewUI();
+                showToast("관리자로 로그인되었습니다. (수정 권한 활성)");
+            } else {
+                document.getElementById('adminLoginError').classList.remove('hidden');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdmin = false;
+            updateAdminViewUI();
+            showToast("관리자 모드가 해제되었습니다.");
+        }
+
+        function updateAdminViewUI() {
+            document.getElementById('adminLoginBtn').classList.toggle('hidden', isAdmin);
+            document.getElementById('adminActiveBadge').classList.toggle('hidden', !isAdmin);
+
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.classList.toggle('hidden', !isAdmin);
+            });
+
+            renderGallery();
+            renderArtistSection();
+            renderPricingCriteria();
+            renderAftercareGrid();
+            renderInquiriesList();
+        }
+
+        function getFlashData() {
+            return JSON.parse(localStorage.getItem('nk_flash')) || defaultFlashItems;
+        }
+
+        function renderGallery() {
+            const items = getFlashData();
+            const filter = document.getElementById('galleryCategoryFilter').value;
+            const grid = document.getElementById('galleryGrid');
+
+            const filtered = filter === 'ALL' ? items : items.filter(i => i.category === filter);
+
+            grid.innerHTML = filtered.map((item, index) => `
+                <div class="glass-card rounded-2xl overflow-hidden border border-zinc-800/80 hover:border-amber-500/50 transition group flex flex-col justify-between">
+                    <div class="relative w-full h-64 bg-zinc-950/90 overflow-hidden flex items-center justify-center p-2 cursor-pointer" onclick="openImageDetailModal('${item.img}', '${item.title}')">
+                        <img src="${item.img}" alt="${item.title}" class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-500">
+                        <span class="absolute top-3 left-3 px-2.5 py-1 rounded-md text-[10px] font-bold ${item.status === '예약가능' ? 'bg-emerald-950/90 text-emerald-300 border border-emerald-700' : 'bg-zinc-900/90 text-zinc-400 border border-zinc-700'}">
+                            ${item.status}
+                        </span>
+                    </div>
+
+                    <div class="p-4 space-y-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-amber-400 font-semibold text-[11px]">${item.category}</span>
+                            <span class="text-zinc-400"><i class="fa-solid fa-ruler"></i> ${item.size}</span>
+                        </div>
+                        <h4 class="font-bold text-white text-base font-serif">${item.title}</h4>
+                        <div class="flex items-center justify-between pt-3 border-t border-zinc-800/80">
+                            <span class="text-sm font-extrabold text-amber-300 font-serif">${item.price}</span>
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="openBookingForDesign('${item.title}')" class="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-amber-500 hover:text-zinc-950 text-zinc-200 text-xs font-semibold transition">
+                                    도안 예약
+                                </button>
+                                ${isAdmin ? `
+                                    <button onclick="deleteFlashItem(${index})" class="px-2 py-1.5 text-rose-400 hover:bg-rose-950/80 rounded-xl text-xs" title="삭제">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterGallery() {
+            renderGallery();
+        }
+
+        function openAddDesignModal() {
+            document.getElementById('designForm').reset();
+            document.getElementById('previewContainer').classList.add('hidden');
+            currentFileBase64 = '';
+            toggleUploadSource('file');
+            document.getElementById('designModal').classList.remove('hidden');
+        }
+
+        function closeDesignModal() {
+            document.getElementById('designModal').classList.add('hidden');
+        }
+
+        function toggleUploadSource(type) {
+            currentUploadSource = type;
+            const btnFile = document.getElementById('tabSourceFile');
+            const btnUrl = document.getElementById('tabSourceUrl');
+            const boxFile = document.getElementById('sourceFileBox');
+            const boxUrl = document.getElementById('sourceUrlBox');
+
+            if (type === 'file') {
+                btnFile.className = "py-2 rounded-xl border border-amber-500/80 bg-amber-950/60 text-amber-200 font-semibold";
+                btnUrl.className = "py-2 rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-400 font-semibold";
+                boxFile.classList.remove('hidden');
+                boxUrl.classList.add('hidden');
+            } else {
+                btnUrl.className = "py-2 rounded-xl border border-amber-500/80 bg-amber-950/60 text-amber-200 font-semibold";
+                btnFile.className = "py-2 rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-400 font-semibold";
+                boxUrl.classList.remove('hidden');
+                boxFile.classList.add('hidden');
+            }
+        }
+
+        function previewFileImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentFileBase64 = e.target.result;
+                    document.getElementById('designPreviewImg').src = currentFileBase64;
+                    document.getElementById('previewContainer').classList.remove('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function saveDesignItem(e) {
+            e.preventDefault();
+            let finalImg = '';
+
+            if (currentUploadSource === 'file') {
+                if (!currentFileBase64) {
+                    alert('사진 파일을 선택해 주세요.');
+                    return;
+                }
+                finalImg = currentFileBase64;
+            } else {
+                finalImg = document.getElementById('designUrlInput').value;
+                if (!finalImg) {
+                    alert('이미지 URL을 입력해 주세요.');
+                    return;
+                }
+            }
+
+            const newItem = {
+                id: Date.now(),
+                title: document.getElementById('designTitle').value,
+                category: document.getElementById('designCategory').value,
+                size: document.getElementById('designSize').value,
+                price: document.getElementById('designPrice').value,
+                status: document.getElementById('designStatus').value,
+                img: finalImg
+            };
+
+            const items = getFlashData();
+            items.unshift(newItem);
+            localStorage.setItem('nk_flash', JSON.stringify(items));
+
+            closeDesignModal();
+            renderGallery();
+            showToast('새 도안이 업로드되었습니다.');
+        }
+
+        function deleteFlashItem(index) {
+            if (confirm('이 도안을 삭제하시겠습니까?')) {
+                const items = getFlashData();
+                items.splice(index, 1);
+                localStorage.setItem('nk_flash', JSON.stringify(items));
+                renderGallery();
+                showToast('도안이 삭제되었습니다.');
+            }
+        }
+
+        function getArtistsData() {
+            return JSON.parse(localStorage.getItem('nk_artists')) || defaultArtists;
+        }
+
+        function selectArtist(id) {
+            selectedArtistId = id;
+            renderArtistSection();
+        }
+
+        function renderArtistSection() {
+            const artists = getArtistsData();
+            const tabsContainer = document.getElementById('artistTabsContainer');
+            const card = document.getElementById('artistDetailCard');
+
+            tabsContainer.innerHTML = artists.map(a => `
+                <button onclick="selectArtist(${a.id})" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${selectedArtistId === a.id ? 'bg-purple-600 text-white' : 'bg-zinc-900 text-zinc-400 hover:text-white'}">
+                    <i class="fa-solid fa-user"></i> ${a.name}
+                </button>
+            `).join('');
+
+            const artist = artists.find(a => a.id === selectedArtistId) || artists[0];
+
+            card.innerHTML = `
+                <div class="flex flex-col lg:flex-row items-center lg:items-start gap-8">
+                    <div class="flex flex-col items-center gap-3 shrink-0">
+                        <img src="${artist.avatar}" alt="${artist.name}" class="w-36 h-36 sm:w-44 sm:h-44 rounded-full object-cover border-4 border-purple-500/40 shadow-2xl">
+                        ${isAdmin ? `
+                            <div class="flex flex-col gap-1.5 w-full">
+                                <button onclick="openArtistModal(${artist.id})" class="w-full px-3 py-1.5 text-xs bg-purple-950/90 border border-purple-600 text-purple-200 rounded-xl hover:bg-purple-900 font-bold flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-pen-to-square"></i> 프로필 & 연락처 수정
+                                </button>
+                                ${artists.length > 1 ? `
+                                    <button onclick="deleteArtistInfo(${artist.id})" class="w-full px-3 py-1.5 text-xs bg-rose-950/80 border border-rose-700 text-rose-200 rounded-xl hover:bg-rose-900 font-bold flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-trash"></i> 아티스트 삭제
+                                    </button>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="space-y-5 text-center lg:text-left flex-grow">
+                        <div class="space-y-1">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800 inline-block">${artist.role} | ${artist.exp}</span>
+                            <h3 class="text-2xl font-black text-white font-serif">${artist.name}</h3>
+                            <p class="text-xs font-semibold text-purple-400">${artist.specialty}</p>
+                        </div>
+
+                        <p class="text-xs text-zinc-300 leading-relaxed bg-zinc-900/60 p-4 rounded-xl border border-zinc-800">${artist.bio}</p>
+                        
+                        <div class="pt-2 border-t border-zinc-800/80">
+                            <div class="flex items-center justify-between mb-2.5">
+                                <h4 class="text-xs font-bold text-zinc-300 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-headset text-purple-400"></i> ${artist.name} 전용 1:1 직통 연락처
+                                </h4>
+                                ${isAdmin ? `<span class="text-[10px] text-amber-400 bg-amber-950/80 border border-amber-700 px-2 py-0.5 rounded-md font-semibold">관리자 기입 정보</span>` : ''}
+                            </div>
+
+                            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
+                                <button onclick="openArtistContactModal(${artist.id}, 'instagram')" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-900/80 to-rose-900/80 hover:from-purple-800 hover:to-rose-800 text-white text-xs font-semibold border border-rose-500/30 flex items-center gap-1.5 transition shadow-md">
+                                    <i class="fa-brands fa-instagram text-rose-400"></i> 인스타그램
+                                </button>
+
+                                <button onclick="openArtistContactModal(${artist.id}, 'kakao')" class="px-3.5 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-zinc-950 text-xs font-bold flex items-center gap-1.5 transition shadow-md">
+                                    <i class="fa-solid fa-comment"></i> 오픈카카오톡 1:1
+                                </button>
+
+                                <button onclick="openArtistContactModal(${artist.id}, 'phone')" class="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-zinc-700 flex items-center gap-1.5 transition shadow-md">
+                                    <i class="fa-solid fa-phone text-emerald-400"></i> ${artist.phone || '전화/문자'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 pt-2 border-t border-zinc-800/80">
+                            <h4 class="text-xs font-bold text-white flex items-center gap-1.5 justify-center lg:justify-start">
+                                <i class="fa-solid fa-award text-amber-400"></i> 주요 경력 및 약력
+                            </h4>
+                            <ul class="space-y-1 text-xs text-zinc-400">
+                                ${(artist.history || []).map(h => `<li class="flex items-center gap-2 justify-center lg:justify-start"><i class="fa-solid fa-check text-purple-400 text-[10px]"></i> ${h}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const bkArtistSelect = document.getElementById('bkArtistSelect');
+            bkArtistSelect.innerHTML = artists.map(a => `<option value="${a.name}">${a.name} (${a.specialty})</option>`).join('');
+        }
+
+        function openArtistContactModal(artistId, type) {
+            const artists = getArtistsData();
+            const artist = artists.find(a => a.id === artistId);
+            if (!artist) return;
+
+            const iconBox = document.getElementById('scIconBox');
+            const title = document.getElementById('scModalTitle');
+            const nameDisp = document.getElementById('scArtistName');
+            const valDisp = document.getElementById('scValueDisplay');
+            const directLink = document.getElementById('scDirectLink');
+
+            nameDisp.innerText = `${artist.name} 아티스트 전용 연락처`;
+
+            if (type === 'instagram') {
+                title.innerHTML = `<i class="fa-brands fa-instagram text-rose-400"></i> 인스타그램 안내`;
+                iconBox.innerHTML = `<i class="fa-brands fa-instagram text-rose-400 text-3xl"></i>`;
+                currentContactValue = artist.instagram || '등록된 인스타그램이 없습니다.';
+                valDisp.innerText = currentContactValue;
+                directLink.href = artist.instagram && artist.instagram.startsWith('http') ? artist.instagram : '#';
+                directLink.target = "_blank";
+            } else if (type === 'kakao') {
+                title.innerHTML = `<i class="fa-solid fa-comment text-yellow-400"></i> 오픈카카오톡 안내`;
+                iconBox.innerHTML = `<i class="fa-solid fa-comment text-yellow-400 text-3xl"></i>`;
+                currentContactValue = artist.kakaoUrl || '등록된 오픈카카오톡 링크가 없습니다.';
+                valDisp.innerText = currentContactValue;
+                directLink.href = artist.kakaoUrl && artist.kakaoUrl.startsWith('http') ? artist.kakaoUrl : '#';
+                directLink.target = "_blank";
+            } else if (type === 'phone') {
+                title.innerHTML = `<i class="fa-solid fa-phone text-emerald-400"></i> 전화 / 문자 안내`;
+                iconBox.innerHTML = `<i class="fa-solid fa-phone text-emerald-400 text-3xl"></i>`;
+                currentContactValue = artist.phone || '등록된 전화번호가 없습니다.';
+                valDisp.innerText = currentContactValue;
+                directLink.href = artist.phone ? `tel:${artist.phone.replace(/[^0-9]/g, '')}` : '#';
+                directLink.removeAttribute('target');
+            }
+
+            document.getElementById('smartContactModal').classList.remove('hidden');
+        }
+
+        function openSmartContactModal(type) {
+            const config = JSON.parse(localStorage.getItem('nk_config')) || defaultConfig;
+            const iconBox = document.getElementById('scIconBox');
+            const title = document.getElementById('scModalTitle');
+            const nameDisp = document.getElementById('scArtistName');
+            const valDisp = document.getElementById('scValueDisplay');
+            const directLink = document.getElementById('scDirectLink');
+
+            nameDisp.innerText = "NOIR INK STUDIO 대표 연락처";
+
+            if (type === 'kakao') {
+                title.innerHTML = `<i class="fa-solid fa-comment text-yellow-400"></i> 대표 오픈카카오톡`;
+                iconBox.innerHTML = `<i class="fa-solid fa-comment text-yellow-400 text-3xl"></i>`;
+                currentContactValue = config.kakaoUrl || 'https://open.kakao.com';
+                valDisp.innerText = currentContactValue;
+                directLink.href = currentContactValue;
+                directLink.target = "_blank";
+            } else {
+                title.innerHTML = `<i class="fa-solid fa-phone text-emerald-400"></i> 스튜디오 전화 / 문자`;
+                iconBox.innerHTML = `<i class="fa-solid fa-phone text-emerald-400 text-3xl"></i>`;
+                currentContactValue = config.phoneNum || '010-1234-5678';
+                valDisp.innerText = currentContactValue;
+                directLink.href = `tel:${currentContactValue.replace(/[^0-9]/g, '')}`;
+                directLink.removeAttribute('target');
+            }
+
+            document.getElementById('smartContactModal').classList.remove('hidden');
+        }
+
+        function closeSmartContactModal() {
+            document.getElementById('smartContactModal').classList.add('hidden');
+        }
+
+        function copyContactValue() {
+            if (!currentContactValue || currentContactValue.includes('없습니다')) {
+                showToast('복사할 정보가 없습니다.');
+                return;
+            }
+            const tempInput = document.createElement('textarea');
+            tempInput.value = currentContactValue;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            showToast('연락처/주소가 클립보드에 복사되었습니다.');
+        }
+
+        function openArtistModal(id = null) {
+            document.getElementById('artistForm').reset();
+            if (id) {
+                const artists = getArtistsData();
+                const artist = artists.find(a => a.id === id);
+                if (artist) {
+                    document.getElementById('artId').value = artist.id;
+                    document.getElementById('artName').value = artist.name || '';
+                    document.getElementById('artRole').value = artist.role || '';
+                    document.getElementById('artSpecialty').value = artist.specialty || '';
+                    document.getElementById('artAvatar').value = artist.avatar || '';
+                    document.getElementById('artInstagram').value = artist.instagram || '';
+                    document.getElementById('artKakaoUrl').value = artist.kakaoUrl || '';
+                    document.getElementById('artPhone').value = artist.phone || '';
+                    document.getElementById('artBio').value = artist.bio || '';
+                    document.getElementById('artHistory').value = (artist.history || []).join('\n');
+                    document.getElementById('artistModalTitle').innerText = '아티스트 프로필 수정';
+                }
+            } else {
+                document.getElementById('artId').value = '';
+                document.getElementById('artistModalTitle').innerText = '새 아티스트 프로필 추가';
+            }
+
+            document.getElementById('artistModal').classList.remove('hidden');
+        }
+
+        function closeArtistModal() {
+            document.getElementById('artistModal').classList.add('hidden');
+        }
+
+        function saveArtistInfo(e) {
+            e.preventDefault();
+            const artists = getArtistsData();
+            const artIdVal = document.getElementById('artId').value;
+
+            const historyText = document.getElementById('artHistory').value;
+            const historyList = historyText.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+
+            const newArtistObj = {
+                id: artIdVal ? parseInt(artIdVal) : Date.now(),
+                name: document.getElementById('artName').value,
+                role: document.getElementById('artRole').value,
+                exp: document.getElementById('artRole').value.includes('경력') ? '' : '소속 아티스트',
+                specialty: document.getElementById('artSpecialty').value,
+                avatar: document.getElementById('artAvatar').value,
+                instagram: document.getElementById('artInstagram').value,
+                kakaoUrl: document.getElementById('artKakaoUrl').value,
+                phone: document.getElementById('artPhone').value,
+                bio: document.getElementById('artBio').value,
+                history: historyList
+            };
+
+            if (artIdVal) {
+                const idx = artists.findIndex(a => a.id === parseInt(artIdVal));
+                if (idx !== -1) artists[idx] = newArtistObj;
+            } else {
+                artists.push(newArtistObj);
+            }
+
+            localStorage.setItem('nk_artists', JSON.stringify(artists));
+            selectedArtistId = newArtistObj.id;
+            closeArtistModal();
+            renderArtistSection();
+            showToast('아티스트 정보가 저장되었습니다.');
+        }
+
+        function deleteArtistInfo(id) {
+            if (confirm('이 아티스트 프로필을 삭제하시겠습니까?')) {
+                let artists = getArtistsData();
+                artists = artists.filter(a => a.id !== id);
+                localStorage.setItem('nk_artists', JSON.stringify(artists));
+                if (artists.length > 0) selectedArtistId = artists[0].id;
+                renderArtistSection();
+                showToast('아티스트가 삭제되었습니다.');
+            }
+        }
+
+        function getPricingData() {
+            return JSON.parse(localStorage.getItem('nk_pricing')) || defaultPricingCriteria;
+        }
+
+        function renderPricingCriteria() {
+            const list = getPricingData();
+            const container = document.getElementById('pricingCriteriaContainer');
+
+            container.innerHTML = list.map((item, index) => `
+                <div class="glass-card p-4 rounded-xl border border-zinc-800/80 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+                            <i class="fa-solid ${item.icon || 'fa-tag'}"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">${item.category}</span>
+                            <h4 class="text-sm font-bold text-white">${item.title}</h4>
+                            <p class="text-xs text-zinc-400 mt-0.5">${item.desc}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <span class="text-sm font-bold text-amber-300 font-serif">+${item.price.toLocaleString()}원</span>
+                        ${isAdmin ? `
+                            <button onclick="deletePricingCriteria(${index})" class="text-rose-400 hover:text-rose-300 px-2 py-1"><i class="fa-solid fa-trash text-xs"></i></button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            const calcSizeSelect = document.getElementById('calcSize');
+            const calcCompSelect = document.getElementById('calcComplexity');
+
+            const sizeItems = list.filter(i => i.category === "크기별 기본 견적");
+            const compItems = list.filter(i => i.category === "세부 표현 방식");
+
+            calcSizeSelect.innerHTML = sizeItems.map(i => `<option value="${i.price}">${i.title} (+${i.price.toLocaleString()}원)</option>`).join('');
+            calcCompSelect.innerHTML = compItems.map(i => `<option value="${i.price}">${i.title} (+${i.price.toLocaleString()}원)</option>`).join('');
+
+            calculateEstimate();
+        }
+
+        function calculateEstimate() {
+            const sizeVal = parseInt(document.getElementById('calcSize').value || 0);
+            const compVal = parseInt(document.getElementById('calcComplexity').value || 0);
+            const placeMult = parseFloat(document.getElementById('calcPlacement').value || 1.0);
+            const customFee = document.getElementById('calcCustomDesign').checked ? 50000 : 0;
+
+            const total = Math.round((sizeVal + compVal) * placeMult + customFee);
+            document.getElementById('calcResultDisplay').innerText = total.toLocaleString() + ' 원';
+        }
+
+        function openAddCriteriaModal() {
+            document.getElementById('critIndex').value = '';
+            document.getElementById('critTitle').value = '';
+            document.getElementById('critPrice').value = '';
+            document.getElementById('critDesc').value = '';
+            document.getElementById('criteriaModal').classList.remove('hidden');
+        }
+
+        function closeCriteriaModal() {
+            document.getElementById('criteriaModal').classList.add('hidden');
+        }
+
+        function savePricingCriteria(e) {
+            e.preventDefault();
+            const list = getPricingData();
+            const newItem = {
+                category: document.getElementById('critCategory').value,
+                title: document.getElementById('critTitle').value,
+                price: parseInt(document.getElementById('critPrice').value || 0),
+                desc: document.getElementById('critDesc').value,
+                icon: "fa-tag"
+            };
+
+            list.push(newItem);
+            localStorage.setItem('nk_pricing', JSON.stringify(list));
+            closeCriteriaModal();
+            renderPricingCriteria();
+            showToast('새 견적 책정 기준 항목이 추가되었습니다.');
+        }
+
+        function deletePricingCriteria(index) {
+            if (confirm('이 책정 기준 항목을 삭제하시겠습니까?')) {
+                const list = getPricingData();
+                list.splice(index, 1);
+                localStorage.setItem('nk_pricing', JSON.stringify(list));
+                renderPricingCriteria();
+                showToast('항목이 삭제되었습니다.');
+            }
+        }
+
+        function resetPricingToDefault() {
+            if (confirm('견적 책정 기준을 초기 기본값으로 복구하시겠습니까?')) {
+                localStorage.setItem('nk_pricing', JSON.stringify(defaultPricingCriteria));
+                renderPricingCriteria();
+                showToast('기본 견적 책정 기준이 복구되었습니다.');
+            }
+        }
+
+        function getAftercareData() {
+            return JSON.parse(localStorage.getItem('nk_aftercare')) || defaultAftercareList;
+        }
+
+        function renderAftercareGrid() {
+            const list = getAftercareData();
+            const container = document.getElementById('aftercareGrid');
+
+            container.innerHTML = list.map((item, index) => `
+                <div class="glass-card p-6 rounded-2xl border border-zinc-800 space-y-3 relative group">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-rose-400 bg-rose-950/60 border border-rose-800 px-2.5 py-1 rounded-md">${item.tag}</span>
+                        <span class="text-xs text-zinc-400 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${item.period}</span>
+                    </div>
+                    <h3 class="text-base font-bold text-white font-serif">${item.title}</h3>
+                    <p class="text-xs text-zinc-300 leading-relaxed whitespace-pre-line bg-zinc-950/50 p-3 rounded-xl border border-zinc-800">${item.content}</p>
+                    ${isAdmin ? `
+                        <div class="pt-2 flex justify-end">
+                            <button onclick="deleteAftercareItem(${index})" class="text-xs text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash mr-1"></i>삭제</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function openAddAftercareModal() {
+            document.getElementById('afPeriod').value = '';
+            document.getElementById('afTitle').value = '';
+            document.getElementById('afTag').value = '';
+            document.getElementById('afContent').value = '';
+            document.getElementById('aftercareModal').classList.remove('hidden');
+        }
+
+        function closeAftercareModal() {
+            document.getElementById('aftercareModal').classList.add('hidden');
+        }
+
+        function saveAftercareItem(e) {
+            e.preventDefault();
+            const list = getAftercareData();
+            const newItem = {
+                period: document.getElementById('afPeriod').value,
+                title: document.getElementById('afTitle').value,
+                tag: document.getElementById('afTag').value,
+                content: document.getElementById('afContent').value,
+                icon: "fa-shield-heart"
+            };
+
+            list.push(newItem);
+            localStorage.setItem('nk_aftercare', JSON.stringify(list));
+            closeAftercareModal();
+            renderAftercareGrid();
+            showToast('새 시술 후 관리 항목이 추가되었습니다.');
+        }
+
+        function deleteAftercareItem(index) {
+            if (confirm('이 관리 가이드 항목을 삭제하시겠습니까?')) {
+                const list = getAftercareData();
+                list.splice(index, 1);
+                localStorage.setItem('nk_aftercare', JSON.stringify(list));
+                renderAftercareGrid();
+                showToast('항목이 삭제되었습니다.');
+            }
+        }
+
+        function resetAftercareToDefault() {
+            if (confirm('시술 후 관리법을 초기 기본 가이드로 복구하시겠습니까?')) {
+                localStorage.setItem('nk_aftercare', JSON.stringify(defaultAftercareList));
+                renderAftercareGrid();
+                showToast('기본 관리법 가이드가 복구되었습니다.');
+            }
+        }
+
+        function submitBookingForm(e) {
+            e.preventDefault();
+            const name = document.getElementById('bkName').value;
+            const contact = document.getElementById('bkContact').value;
+            const artist = document.getElementById('bkArtistSelect').value;
+            const date = document.getElementById('bkDate').value;
+            const notes = document.getElementById('bkNotes').value;
+
+            const inquiries = JSON.parse(localStorage.getItem('nk_inquiries')) || [];
+            inquiries.unshift({
+                id: Date.now(),
+                name,
+                contact,
+                artist,
+                date,
+                notes,
+                submittedAt: new Date().toLocaleString('ko-KR')
+            });
+
+            localStorage.setItem('nk_inquiries', JSON.stringify(inquiries));
+            closeBookingModal();
+            renderInquiriesList();
+
+            const config = JSON.parse(localStorage.getItem('nk_config')) || defaultConfig;
+            openConfiguredContact(config.primaryMethod);
+            showToast('상담 신청서가 제출되었습니다.');
+        }
+
+        function renderInquiriesList() {
+            const inquiries = JSON.parse(localStorage.getItem('nk_inquiries')) || [];
+            const container = document.getElementById('inquiriesContainer');
+            document.getElementById('inquiryBadgeCount').innerText = inquiries.length;
+
+            if (inquiries.length === 0) {
+                container.innerHTML = `<p class="text-center text-xs text-zinc-500 py-8">접수된 소중한 문의 내역이 없습니다.</p>`;
+                return;
+            }
+
+            container.innerHTML = inquiries.map(iq => `
+                <div class="glass-card p-4 rounded-xl border border-zinc-800 space-y-2 text-xs">
+                    <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+                        <span class="font-bold text-amber-300 text-sm">${iq.name} 손님 (${iq.contact})</span>
+                        <span class="text-zinc-500 text-[10px]">${iq.submittedAt}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-zinc-400">
+                        <p><strong>희망 아티스트:</strong> ${iq.artist}</p>
+                        <p><strong>희망 시술일:</strong> ${iq.date}</p>
+                    </div>
+                    <p class="text-zinc-200 bg-zinc-950 p-2.5 rounded-lg border border-zinc-800 whitespace-pre-line">${iq.notes}</p>
+                </div>
+            `).join('');
+        }
+
+        function clearAllInquiries() {
+            if (confirm('모든 받은 문의 내역을 삭제하시겠습니까?')) {
+                localStorage.setItem('nk_inquiries', JSON.stringify([]));
+                renderInquiriesList();
+                showToast('문의함이 비워졌습니다.');
+            }
+        }
+
+        function openConfiguredContact(type) {
+            const config = JSON.parse(localStorage.getItem('nk_config')) || defaultConfig;
+            if (type === 'kakao') {
+                window.open(config.kakaoUrl, '_blank');
+            } else {
+                window.location.href = `tel:${config.phoneNum}`;
+            }
+        }
+
+        function openContactConfigModal() {
+            updateContactUI();
+            document.getElementById('contactConfigModal').classList.remove('hidden');
+        }
+
+        function closeContactConfigModal() {
+            document.getElementById('contactConfigModal').classList.add('hidden');
+        }
+
+        function saveContactConfig(e) {
+            e.preventDefault();
+            const config = {
+                kakaoUrl: document.getElementById('cfgKakaoUrl').value,
+                phoneNum: document.getElementById('cfgPhoneNum').value,
+                primaryMethod: document.getElementById('cfgPrimaryMethod').value
+            };
+            localStorage.setItem('nk_config', JSON.stringify(config));
+            closeContactConfigModal();
+            showToast('연락처 및 주 연결 방식이 저장되었습니다.');
+        }
+
+        function updateContactUI() {
+            const config = JSON.parse(localStorage.getItem('nk_config')) || defaultConfig;
+            document.getElementById('cfgKakaoUrl').value = config.kakaoUrl;
+            document.getElementById('cfgPhoneNum').value = config.phoneNum;
+            document.getElementById('cfgPrimaryMethod').value = config.primaryMethod;
+        }
+
+        function openBookingModal() {
+            document.getElementById('bookingModal').classList.remove('hidden');
+        }
+
+        function closeBookingModal() {
+            document.getElementById('bookingModal').classList.add('hidden');
+        }
+
+        function openBookingForDesign(title) {
+            document.getElementById('bkNotes').value = `[선택 도안: ${title}] 예약 상담 신청합니다.`;
+            openBookingModal();
+        }
+
+        function openBookingWithEstimate() {
+            const est = document.getElementById('calcResultDisplay').innerText;
+            document.getElementById('bkNotes').value = `[실시간 계산기 예상 견적: ${est}] 해당 사양으로 상담 신청합니다.`;
+            openBookingModal();
+        }
+
+        function openImageDetailModal(imgSrc, title) {
+            document.getElementById('detailModalImg').src = imgSrc;
+            document.getElementById('detailModalTitle').innerText = title;
+            document.getElementById('imageDetailModal').classList.remove('hidden');
+        }
+
+        function closeImageDetailModal() {
+            document.getElementById('imageDetailModal').classList.add('hidden');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(el => {
+                el.classList.remove('bg-amber-500', 'text-zinc-950', 'shadow-md');
+                el.classList.add('text-zinc-400', 'hover:text-white', 'hover:bg-zinc-900');
+            });
+
+            document.getElementById('section-' + tabId).classList.remove('hidden');
+            const activeNav = document.getElementById('tab-' + tabId);
+            if (activeNav) {
+                activeNav.classList.remove('text-zinc-400', 'hover:text-white', 'hover:bg-zinc-900');
+                activeNav.classList.add('bg-amber-500', 'text-zinc-950', 'shadow-md');
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
